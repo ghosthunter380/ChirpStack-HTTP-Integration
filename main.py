@@ -17,7 +17,7 @@ db_config = {
 class Handler(BaseHTTPRequestHandler):
     # True -  JSON marshaler
     # False - Protobuf marshaler (binary)
-    json = False
+    json = True
 
     def do_POST(self):
         self.send_response(200)
@@ -64,7 +64,7 @@ class Handler(BaseHTTPRequestHandler):
             # Insert the device parameters into a MySQL database
             conn = mysql.connector.connect(**db_config)
             cursor = conn.cursor()
-            query = "INSERT INTO device_data (devName, time, temperature, latitude, longitude, altitude, gatewayID, rssi, snr) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
+            query = "INSERT INTO lora_test (devName, time, temperature, latitude, longitude, altitude, gatewayID, rssi, snr) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
             values = (devName, formated_ts, temperature, lat, lon, alt, gatewayID, rssi, snr)
             cursor.execute(query, values)
             conn.commit()
