@@ -1,4 +1,5 @@
 import json
+import datetime
 import mysql.connector
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
@@ -47,16 +48,24 @@ class Handler(BaseHTTPRequestHandler):
             payload_json = json.loads(payload_data)
             
             # Filter device parameters such as coordinates, temperature, and humidity
-            lat = payload_json['location']['latitude']
-            lon = payload_json['location']['longitude']
-            temperature = payload_json['temperature']
-            humidity = payload_json['humidity']
+            devName = payload_json['deviceInfo']['deviceName']
+            gatewayID = payload_json['rxInfo']['0']['gatewayID']
+            time = payload_json['rxInfo']['0']['time']
+            timestamp = datetime.datetime.fromisoformat(time)
+            formated_ts = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+            temperature = payload_json['object']['temperature']
+            lat = payload_json['object']['latitude']
+            lon = payload_json['object']['longitude']
+            alt = payload_json['object']['altitude']
+            rssi = payload_json['rxInfo']['0']['rssi']
+            snr = payload_json['rxInfo']['0']['snr']
+            
             
             # Insert the device parameters into a MySQL database
             conn = mysql.connector.connect(**db_config)
             cursor = conn.cursor()
-            query = "INSERT INTO device_data (dev_eui, latitude, longitude, temperature, humidity) VALUES (%s, %s, %s, %s, %s)"
-            values = (dev_eui, lat, lon, temperature, humidity)
+            query = "INSERT INTO device_data (devName, time, temperature, latitude, longitude, altitude, gatewayID, rssi, snr) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
+            values = (devName, formated_ts, temperature, lat, lon, alt, gatewayID, rssi, snr)
             cursor.execute(query, values)
             conn.commit()
             cursor.close()
